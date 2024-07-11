@@ -9,7 +9,7 @@ class MyDataset(Dataset):
         self.dataset_name = dataset_name
         if self.dataset_name == "cifar10":
             self.cifar10 = CIFAR10('../cifar10', train=train_flag, 
-                                    download=True, transform=transf)
+                                    download=True, transform=transf) #加载cifar10数据
         if self.dataset_name == "cifar100":
             self.cifar100 = CIFAR100('../cifar100', train=train_flag, 
                                     download=True, transform=transf)
@@ -81,9 +81,9 @@ def load_dataset(dataset):
         data_unlabeled = MyDataset(dataset, True, test_transform)
         data_test  = CIFAR10('../cifar10', train=False, download=True, transform=test_transform)
         NO_CLASSES = 10
-        adden = ADDENDUM
+        adden = ADDENDUM # ADDENDUM = 1000
         NUM_TRAIN = len(data_train)        
-        no_train = NUM_TRAIN
+        no_train = NUM_TRAIN # NUM_TRAIN = 50000
     elif dataset == 'cifar10im': 
         data_train = CIFAR10('../cifar10', train=True, download=True, transform=train_transform)
         #data_unlabeled   = CIFAR10('../cifar10', train=True, download=True, transform=test_transform)

@@ -63,35 +63,36 @@ if __name__ == '__main__':
         TRIALS = 1
         CYCLES = 1
     else:
-        CYCLES = args.cycles
-    for trial in range(TRIALS):
+        CYCLES = args.cycles # cycles = 5
+    for trial in range(TRIALS): # TRIALS = 5 开始训练 一共5次
 
         # Load training and testing dataset
+        # adden = 1000, NO_CLASSES = 10, no_train = 50000
         data_train, data_unlabeled, data_test, adden, NO_CLASSES, no_train = load_dataset(args.dataset)
         print('The entire datasize is {}'.format(len(data_train)))       
-        ADDENDUM = adden
-        NUM_TRAIN = no_train
-        indices = list(range(NUM_TRAIN))
+        ADDENDUM = adden # 1000
+        NUM_TRAIN = no_train # 50000
+        indices = list(range(NUM_TRAIN))#从[0到50000]的list
         random.shuffle(indices)
 
         if args.total:
-            labeled_set= indices
+            labeled_set = indices # 不执行
         else:
-            labeled_set = indices[:ADDENDUM]
-            unlabeled_set = [x for x in indices if x not in labeled_set]
-
+            labeled_set = indices[:ADDENDUM] #随机挑选1000个样本作为labeled dataset
+            unlabeled_set = [x for x in indices if x not in labeled_set]#剩下49000个样本作为unlabeled dataset
+        #BATCH = 128
         train_loader = DataLoader(data_train, batch_size=BATCH, 
                                     sampler=SubsetRandomSampler(labeled_set), 
                                     pin_memory=True, drop_last=True)
         test_loader  = DataLoader(data_test, batch_size=BATCH)
         dataloaders  = {'train': train_loader, 'test': test_loader}
 
-        for cycle in range(CYCLES):
+        for cycle in range(CYCLES):# cycles = 5
             
             # Randomly sample 10000 unlabeled data points
             if not args.total:
                 random.shuffle(unlabeled_set)
-                subset = unlabeled_set[:SUBSET]
+                subset = unlabeled_set[:SUBSET] # SUBSET = 10000 随机从49000的未标注数据中选择10000个
             # Model - create new instance for every cycle so that it resets
             with torch.cuda.device(CUDA_VISIBLE_DEVICES):
                 if args.dataset == "fashionmnist":
@@ -110,15 +111,15 @@ if __name__ == '__main__':
             
             # Loss, criterion and scheduler (re)initialization
             criterion      = nn.CrossEntropyLoss(reduction='none')
-            optim_backbone = optim.SGD(models['backbone'].parameters(), lr=LR, 
+            optim_backbone = optim.SGD(models['backbone'].parameters(), lr=LR, #LR = 1e-1, MOMENTUM, MOMENTUM = 0.9, WDECAY = 5e-4
                 momentum=MOMENTUM, weight_decay=WDECAY)
  
-            sched_backbone = lr_scheduler.MultiStepLR(optim_backbone, milestones=MILESTONES)
+            sched_backbone = lr_scheduler.MultiStepLR(optim_backbone, milestones=MILESTONES) # MILESTONES = [160, 240]
             optimizers = {'backbone': optim_backbone}
             schedulers = {'backbone': sched_backbone}
             if method == 'lloss' or 'TA-VAAL':
                 optim_module   = optim.SGD(models['module'].parameters(), lr=LR, 
-                    momentum=MOMENTUM, weight_decay=WDECAY)
+                    momentum=MOMENTUM, weight_decay=WDECAY) #LR = 1e-1, MOMENTUM, MOMENTUM = 0.9, WDECAY = 5e-4
                 sched_module   = lr_scheduler.MultiStepLR(optim_module, milestones=MILESTONES)
                 optimizers = {'backbone': optim_backbone, 'module': optim_module}
                 schedulers = {'backbone': sched_backbone, 'module': sched_module}
